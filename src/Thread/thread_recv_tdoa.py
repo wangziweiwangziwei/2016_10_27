@@ -1,5 +1,4 @@
-
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 import threading
 import wx
 from src.Package.package import *
@@ -51,6 +50,65 @@ class ReceiveTdoaThread(threading.Thread):
                 print "  TDOA NO DATA"
                 time.sleep(1)
                  
+    def SaveIQ(self,recvIQ):
+
+        block = IQBlock(recvIQ.CurBlockNo, recvIQ.IQDataAmp)
+        head = IQUploadHeader(0x00, recvIQ.LonLatAlti, recvIQ.Param)
+
+        #####组合tdoa 文件################
+
+        count = (recvIQ.SecondCount[0] << 24) + \
+                (recvIQ.SecondCount[1] << 16) + \
+                (recvIQ.SecondCount[2] << 8) + \
+                (recvIQ.SecondCount[3])
+
+
+        Time=recvIQ.Time
+
+        Year=(Time.HighYear<<4)+Time.LowYear
+        Month=Time.Month
+        Day=Time.Day
+        Hour=(Time.HighHour<<2)+Time.LowHour+8
+        Minute=Time.Minute
+        Second=Time.Second
+        ID = staticVar.getid()
+
+        if(not Year==2016):
+            curTime = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+            Year = int(curTime[0:4])
+            Month = int(curTime[4:6])
+            Day = int(curTime[6:8])
+            Hour = int(curTime[8:10])
+            Minute = int(curTime[10:12])
+            Second = int(curTime[12:14])
+
+
+        list1=[str(Month),str(Day),str(Hour),str(Minute),str(Second)]
+        for i in range(5):
+            if(len(list1[i])==1):
+                list1[i]='0'+list1[i]
+
+
+
+        fileName = str(Year) + "-" + list1[0] + "-" + list1[1] + \
+                   "-" + list1[2] + "-" + list1[3] +  \
+                   "-" + list1[4] + '-' +str(count)+'-'+ str(ID) + \
+                   '.tdoa'
+
+        #print fileName
+
+        ###########SaveToLocal####################
+        fid=open(".\LocalData\\Tdoa\\"+ fileName,'wb')
+        # fid = open(self.dir_iq + fileName, 'wb+')
+        # fid.write(bytearray(head))
+        #
+        # fid.write(bytearray(block))
+        # fid.write(struct.pack("!B", 0x00))
+        d=dict(head=head,block=block)
+        pickle.dump(d, fid)
+        fid.close()
+        #########################################
+
 
     def DrawIQ(self,recvIQ):
         self.draw_intv+=1
@@ -111,71 +169,6 @@ class ReceiveTdoaThread(threading.Thread):
             except Exception ,e:
                 self.mainframe.WaveFrame=None
                 print e
-
-    def SaveIQ(self,recvIQ):
-
-
-        block = IQBlock(recvIQ.CurBlockNo, recvIQ.IQDataAmp)
-
-
-        head = IQUploadHeader(0x00, recvIQ.LonLatAlti, recvIQ.Param)
-
-        #####组合tdoa 文件################
-
-        count = (recvIQ.SecondCount[0] << 24) + \
-                (recvIQ.SecondCount[1] << 16) + \
-                (recvIQ.SecondCount[2] << 8) + \
-                (recvIQ.SecondCount[3])
-
-
-        Time=recvIQ.Time
-
-        Year=(Time.HighYear<<4)+Time.LowYear
-        Month=Time.Month
-        Day=Time.Day
-        Hour=(Time.HighHour<<2)+Time.LowHour+8
-        Minute=Time.Minute
-        Second=Time.Second
-        ID = staticVar.getid()
-
-        if(not Year==2016):
-            curTime = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-            Year = int(curTime[0:4])
-            Month = int(curTime[4:6])
-            Day = int(curTime[6:8])
-            Hour = int(curTime[8:10])
-            Minute = int(curTime[10:12])
-            Second = int(curTime[12:14])
-
-
-        list1=[str(Month),str(Day),str(Hour),str(Minute),str(Second)]
-        for i in range(5):
-            if(len(list1[i])==1):
-                list1[i]='0'+list1[i]
-
-
-
-        fileName = str(Year) + "-" + list1[0] + "-" + list1[1] + \
-                   "-" + list1[2] + "-" + list1[3] +  \
-                   "-" + list1[4] + '-' +str(count)+'-'+ str(ID) + \
-                   '.tdoa'
-
-        #print fileName
-
-        ###########SaveToLocal####################
-        fid=open(".\LocalData\\Tdoa\\"+ fileName,'wb')
-        # fid = open(self.dir_iq + fileName, 'wb+')
-        # fid.write(bytearray(head))
-        #
-        # fid.write(bytearray(block))
-        # fid.write(struct.pack("!B", 0x00))
-        d=dict(head=head,block=block)
-        pickle.dump(d, fid)
-        fid.close()
-        #########################################
-
-
-
 
 
 

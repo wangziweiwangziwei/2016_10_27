@@ -47,6 +47,8 @@ class dialog_sweep ( wx.Dialog ):
        
         self.parent=parent
         
+        self.rbw_flg = 0
+        
         print self.id 
         
         
@@ -425,20 +427,20 @@ class dialog_sweep ( wx.Dialog ):
         totalNum=array[1]-array[0]+1
 
         
-        rbw_flg = (self.freq_e-self.freq_s)/25 + 1
+        self.rbw_flg = (self.freq_e-self.freq_s)/25 + 1
 
-        if rbw_flg <= 40 :
+        if self.rbw_flg <= 40 :
             self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:24k')
-            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(rbw_flg * 24) + 'k') 
-            print 'VBW:' + str(rbw_flg * 24) + 'k'
+            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 24) + 'k') 
+            print 'VBW:' + str(self.rbw_flg * 24) + 'k'
         else :
-            if (rbw_flg % 32 == 0 ):
-                rbw_flg = rbw_flg / 32
+            if (self.rbw_flg % 32 == 0 ):
+                self.rbw_flg = self.rbw_flg / 32
             else :
-                rbw_flg = rbw_flg / 32 + 1
+                self.rbw_flg = self.rbw_flg / 32 + 1
             self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:781k')
-            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(rbw_flg * 781) + 'k')
-            print 'VBW:' + str(rbw_flg * 781) + 'k'
+            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 781) + 'k')
+            print 'VBW:' + str(self.rbw_flg * 781) + 'k'
          
 
         if(totalNum>40):

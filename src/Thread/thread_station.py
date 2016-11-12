@@ -17,6 +17,10 @@ import class_upload_poa
 
 import thread_recv_tdoa
 import  class_upload_tdoa
+
+import thread_recv_recorder
+import class_upload_recorder
+
 import socket
 import struct
 
@@ -41,6 +45,7 @@ class ReceiveServerData(threading.Thread):
         self.mainframe=mainframe
 
         self.thread_tdoa=0
+        self.thread_recorder = 0
 
         '''这里是四个发送文件的class'''
         self.send_file_class=class_upload.SendFileClass(self.specFrame,self.mainframe.queueFFTUpload,
@@ -51,11 +56,13 @@ class ReceiveServerData(threading.Thread):
         self.send_file_poa_class=class_upload_poa.SendPoaFile()
 
         self.send_file_tdoa_class=class_upload_tdoa.SendTdoaFile()
+        
+        self.send_file_recorder_class = class_upload_recorder.SendRecorderFile()
 
         self.count_heart_beat=0
         self.thread_timer=0
         self.thread_timer=0
-        '''0:spec   1:iq    2: POA  3: TDOA  文件上传'''
+        '''0:spec   1:iq    2: POA  3: TDOA  4:iq2 文件上传'''
         self.switch_to_transfer=0
 
         self.rlist=[self.sock,self.sockFile]
@@ -117,7 +124,7 @@ class ReceiveServerData(threading.Thread):
 
                                 self.ReConnect()
 
-                            #发送文件（POA，TDOA，功率谱，IQ 四种文件）
+                            #发送文件（POA，TDOA，功率谱，IQ，IQ2 四种文件）
                         elif outsock == self.sockFile:
                             try:
 
@@ -130,6 +137,8 @@ class ReceiveServerData(threading.Thread):
                                     self.send_file_poa_class.send_poa_data()
                                 elif(self.switch_to_transfer==3):
                                     self.send_file_tdoa_class.upload_tdoa()
+                                elif(self.switch_to_transfer == 4):
+                                    self.send_file_recorder_class.send_recorder_data()
 
 
                             except socket.error,e:
@@ -626,6 +635,47 @@ class ReceiveServerData(threading.Thread):
 
                 self.remove( os.getcwd()+"\\LocalData\\Tdoa\\")
                 self.remove( os.getcwd()+"\\LocalData\\Poa\\")
+                
+            
+            elif(frameFlag == 52):
+                '''RECORDER frame'''
+                data = self.sock.recv(17)
+                for i in data:
+                    ListData.append(ord(i))
+                self.outPoint.write(bytearray(ListData))
+                print 'RECORDER frame has been write'
+                self.mainframe.thread_recvfft.stop()
+
+                if(self.thread_recorder == 0):
+                    self.thread_recorder = thread_recv_recorder.ReceiveRecorderDataThread(self.mainframe)
+                    self.thread_recorder.start()
+                else:
+                    self.thread_recorder.event.set()
+                    
+
+                self.switch_to_transfer = 4
+                
+            elif(frameFlag == 53):
+                
+                '''Stop RECORDER frame'''
+                data = self.sock.recv(15)
+                for i in data:
+                    ListData.append(ord(i))
+
+
+                self.outPoint.write(bytearray(ListData))
+                print 'stop command has been write'
+
+                if(self.switch_to_transfer == 4):
+                    self.thread_recorder.stop()
+                    self.mainframe.thread_recvfft.event.set()
+
+                self.switch_to_transfer = 0
+
+                self.remove( os.getcwd() + "\\LocalData\\IQ2\\")
+
+            
+        
 
 
             elif(frameFlag==177):
@@ -647,17 +697,17 @@ class ReceiveServerData(threading.Thread):
                 ListData=[]
                 ListData=self.RecvContent(self.sock,dataLen,ListData,BUFSIZE)
                 frameFlag=ListData[1]
-                if(frameFlag==178):
+                if(frameFlag == 178):
                     self.ReadElecTrend(ListData)
-                elif(frameFlag==179):
+                elif(frameFlag == 179):
                     self.ReadElecPath(ListData)
-                elif(frameFlag==180):
+                elif(frameFlag == 180):
                     self.ReadAbFreq(ListData)
-                elif(frameFlag==181):
+                elif(frameFlag == 181):
                     self.ReadStationPro(ListData)
-                elif(frameFlag==182):
+                elif(frameFlag == 182):
                     self.ReadStationCurPro(ListData)
-                elif(frameFlag==183):
+                elif(frameFlag == 183):
                     List=[(0,u"起始频率（MHz）"),(1,u"终止频率（MHz）"),(2,u"业务类型 1")]
                     for i in range(3):
                         col = self.specFrame.panelQuery.GetColumn(i)

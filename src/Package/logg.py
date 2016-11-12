@@ -6,7 +6,7 @@ class Log:
 
     @classmethod
     def init(cls):
-        logging.config.fileConfig("logger.conf")
+#         logging.config.fileConfig("logger.conf")
         cls.logger = logging.getLogger("example01")
 
     @classmethod

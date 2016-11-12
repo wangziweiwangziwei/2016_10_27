@@ -21,6 +21,7 @@ import threading
 from src.PressDialog.press import dialog_press
 from src.PressDialog.pressmode import dialog_pressmode
 from src.SweepDialog.sweep import dialog_sweep
+from src.RecorderDialog.recorder import dialog_recorder
 from src.SinalAnalysis.signalAnalysis import SignalAnalysisDlg
 from src.IQDialog.IQ import dialog_IQ
 from src.MapDialog.map import dialog_map
@@ -61,27 +62,25 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         ''' 首先加载硬件的东西 '''
 
         # #################################
-
-        staticVar.setid(41)  # 初始化id
-
-        ############### hard wave config ######################
-        value=0
-
-        
-        value = LoadFirm.load_firmware(r"D:\SlaveFifoSync5Bit.img")
-
-        if (value == 1):
-            raise Exception('can not load firm wave ')
-
-        staticVar.initPort()  # 初始化硬件 端口
-
+#         staticVar.setid(41)  # 初始化id
+# 
+#         ############### hard wave config ######################
+#         value=0
+# 
+#         
+#         value = LoadFirm.load_firmware(r"D:\SlaveFifoSync5Bit.img")
+# 
+#         if (value == 1):
+#             raise Exception('can not load firm wave ')
+# 
+#         staticVar.initPort()  # 初始化硬件 端口
         # ############################################
 
         Log.init()  #日志初始化
 
-        bmp = wx.Image(".//icons//title.jpg", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
-        wx.SplashScreen(bmp, wx.SPLASH_CENTER_ON_SCREEN | wx.SPLASH_TIMEOUT,2000, None, -1)
-        wx.Yield()
+#         bmp = wx.Image(".//icons//title.jpg", wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+#         wx.SplashScreen(bmp, wx.SPLASH_CENTER_ON_SCREEN | wx.SPLASH_TIMEOUT,2000, None, -1)
+#         wx.Yield()
 
         #######################################
         matplotlib.rcParams["figure.facecolor"] = '#F2F5FA'
@@ -100,13 +99,14 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
 
         #######################################
 #         os.chdir("./apache-tomcat-7.0.68//bin//")
-        os.chdir("./apache-tomcat-7.0.68//bin//")
+        # os.chdir("./apache-tomcat-7.0.68//bin//")
 
         os.system("startup.bat")
         dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
         os.chdir(dirname)
         ########### 初始化变量  #################
         self.start_local_iq=0
+
 
         ########### 方便重连 的ip ##########
         self.ip_moni='27.17.8.142'
@@ -133,6 +133,10 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         self.TojiFrame = None
 
         self.HistorySpecFrame = None
+        
+        self.IQ2SpecFrame = None
+        self.IQ2SpecFrame_test = None
+        self.IQ2SpecFrame_test2 = None
 
         self.serverCom=ServerCommunication() #实例化服务器连接对象
 
@@ -168,6 +172,7 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         ## 窗口对象，以后就不创建了 ####
         self.dlg_sweep = 0
         self.dlg_connect = 0
+        self.dlg_recorder = 0 
         self.dlg_iq = 0
         self.dlg_press = 0
         self.dlg_map=0
@@ -215,62 +220,51 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
 
         self.m_start_hw = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"连接硬件", wx.Bitmap( ".//icons//pci.jpg", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"给硬件发送的命令，开启USB连接", wx.EmptyString, None )
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_connect = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"连接服务器", wx.Bitmap( ".//icons//server_connect.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"连接服务器以便发送服务请求", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_tool_sweep = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"扫频接收 ", wx.Bitmap( ".//icons//spectrum.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"设置扫频范围，扫频参数，查询工作状态", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_tool_iq = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"定频接收  ", wx.Bitmap( ".//icons//link_a.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"开启本地定频，查询工作状态", wx.EmptyString, None )
-
+        self.m_toolBar1.AddSeparator()
+        self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
+        self.m_tool_recorder = self.m_toolBar1.AddLabelTool(wx.ID_ANY, u"录音回放 ", wx.Bitmap( ".//icons//recorder2.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"开启录音工作模式或者解调-回放工作模式", wx.EmptyString, None)
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
+        self.m_toolBar1.AddSeparator() 
 
         self.m_tool_press = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"压制发射", wx.Bitmap( ".//icons//pro24.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"启动压制命令，压制异常频点", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
-
+        self.m_toolBar1.AddSeparator()
+        
         self.m_tool_map = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"地图服务", wx.Bitmap( ".//icons//map3.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"进行地图相关的服务请求设置，并查看地图结果显示", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_tool_freqplan = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"查询频率规划", wx.Bitmap( ".//icons//find1.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"查询具体频段的国家无线电频率规划信息", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_tool_remoteCtrl = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"远程控制", wx.Bitmap( ".//icons//remote.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"设置指定ID的远程终端的扫频参数，定频参数，或者压制参数", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
         self.m_tool_replay = self.m_toolBar1.AddLabelTool( wx.ID_ANY, u"信号分析", wx.Bitmap( ".//icons//oscilloscope2.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, U"对本地数据文件或者历史数据进行信号分析", wx.EmptyString, None )
-
         self.m_toolBar1.AddSeparator()
-
         self.m_toolBar1.AddSeparator()
         self.m_toolBar1.AddSeparator()
 
@@ -286,6 +280,7 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         self.Bind( wx.EVT_TOOL, self.m_start_hwOnToolClicked, id = self.m_start_hw.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_connectOnToolClicked, id = self.m_connect.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_tool_sweepOnToolClicked, id = self.m_tool_sweep.GetId() )
+        self.Bind( wx.EVT_TOOL, self.m_tool_recorderClicked , id = self.m_tool_recorder.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_tool_iqOnToolClicked, id = self.m_tool_iq.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_tool_pressOnToolClicked, id = self.m_tool_press.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_tool_mapOnToolClicked, id = self.m_tool_map.GetId() )
@@ -293,6 +288,7 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         self.Bind( wx.EVT_TOOL, self.m_tool_remoteCtrlOnToolClicked, id = self.m_tool_remoteCtrl.GetId() )
         self.Bind( wx.EVT_TOOL, self.m_tool_replayOnToolClicked, id = self.m_tool_replay.GetId() )
         self.Bind(wx.EVT_TOOL, self.m_tool_helpOnToolClicked, id=self.m_tool_help.GetId())
+
     def __del__( self ):
         pass
 
@@ -501,6 +497,12 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         self.dlg_iq.ShowModal()
         event.Skip()
 
+    def m_tool_recorderClicked(self,event):
+        if (self.dlg_recorder == 0 ):
+            self.dlg_recorder = dialog_recorder(self)
+        self.dlg_recorder.ShowModal()
+        event.Skip()
+
     def m_tool_pressOnToolClicked( self, event ):
         if(self.dlg_press==0):
             self.dlg_press=dialog_press(self)
@@ -549,7 +551,7 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         dirname, filename = os.path.split(os.path.abspath(sys.argv[0]))
         os.chdir(dirname)
 #         os.chdir("./apache-tomcat-7.0.68//bin//")
-        os.chdir("./apache-tomcat-7.0.68//bin//")
+#         os.chdir("./apache-tomcat-7.0.68//bin//")
 
         os.system("shutdown.bat")
         if(not self.thread_route_map==0):

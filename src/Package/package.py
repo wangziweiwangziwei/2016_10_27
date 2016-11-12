@@ -128,6 +128,43 @@ class IQFreqSet(BigEndianStructure):
               ("CommonTail",FrameTail)
              ]
 
+############启动录音信令帧设置#############
+class RecordStartSet(BigEndianStructure):
+    _fields_=[("CommonHeader",FrameHeader),
+              ("RecvGain",c_uint8),
+              ("ByteZero1",c_uint8),
+              ("FreqArray",CentreFreq),
+              ("BandWidth",c_uint8,4),
+              ("DataRate",c_uint8,4),
+              ("ByteZero2",c_uint8),
+              ("HighYear",c_uint8),
+              ("LowYear",c_uint8,4),
+              ("Month",c_uint8,4),
+              ("Day",c_uint8,5),
+              ("HighHour",c_uint8,3),
+              ("Minute",c_uint8,6),
+              ("LowHour",c_uint8,2),
+              ("Second",c_uint8),
+              ("CommonTail",FrameTail)
+             ]
+
+############结束录音信令帧设置#############
+class RecorderEndSet(BigEndianStructure):
+    _fields_ = [("CommonHeader",FrameHeader),
+                ("RecvGain",c_uint8),
+                ("StartSectionNo",c_uint8),
+                ("StartSixBit0",c_uint8,6),
+                ("HighStartFreq",c_uint8,2),
+                ("LowStartFreq",c_uint8),
+                ("EndSectionNo",c_uint8),
+                ("EndSixBit0",c_uint8,6),
+                ("HighEndFreq",c_uint8,2),
+                ("LowEndFreq",c_uint8),
+                ("ByteZero1",c_uint8),
+                ("ByteZero2",c_uint8),
+                ("ByteZero3",c_uint8),
+                ("CommonTail",FrameTail)]
+
 #############压制发射频率设置#############
 class PressFreqSet(BigEndianStructure):
     _fields_=[("CommonHeader",FrameHeader),
@@ -341,6 +378,15 @@ class IQDataPartHead(BigEndianStructure):
               ("DataRate",c_uint8,4),
               ("UploadNum",c_uint8)]
 
+class IQDataRePart(BigEndianStructure):
+    _fields_=[("HighCentreFreqInteger",c_uint8),
+              ("HighCentreFreqFraction",c_uint8,2),
+              ("LowCentreFreqInteger",c_uint8,6),
+              ("LowCentreFreqFraction",c_uint8),
+              ("BandWidth",c_uint8,4),
+              ("DataRate",c_uint8,4)
+              ]
+
 class IQData(BigEndianStructure):
     _fields_=[("CommonHeader",FrameHeader),
               ("LonLatAlti",LonLatAltitude),
@@ -382,11 +428,21 @@ class IQUploadHeader(BigEndianStructure):
               ("Param",IQDataPartHead)
               ]
 
+class IQ2UploadHeader(BigEndianStructure):
+    _fields_=[("Header",c_uint8),
+              ("LonLatAlti",LonLatAltitude),
+              ("ParamNoUp",IQDataRePart),
+              ("ByteZero1",c_uint8),
+              ("ByteZero2",c_uint8)
+              ]
+
 class IQBlock(BigEndianStructure):
     _fields_=[("CurBlockNo",c_uint8),
               ("IQDataAmp",FreqIQ*2000)
  ]        
 
+class IQ2Block(BigEndianStructure):
+    _fields_ = [("IQDataAmp",FreqIQ*2000)]
 
 ############服务请求数据帧######################################
 
@@ -607,7 +663,20 @@ class TdoaData(BigEndianStructure):
 
 
 '''异常辐射源POA 数据文件'''
+''''''
 
+############## 录音数据帧 ####################
+class RecorderData(BigEndianStructure):
+    _fields_ = [("CommonHeader",FrameHeader),
+                ("LonLatAlti",LonLatAltitude),
+                ("Time",TimeNoZero),
+                ("SecondCount",c_uint8*4),
+                ('ParamNoUp',IQDataRePart),
+                ("ByteZero1",c_uint8),
+                ("ByteZero2",c_uint8),
+                ("IQDataAmp",FreqIQ*2000),
+                ("CommonTail",FrameTail)
+                ]
 
 
 

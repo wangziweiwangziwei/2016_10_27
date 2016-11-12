@@ -351,6 +351,43 @@ class ByteToPackage():
 
         obj.CommonTail = (0,0,0xAA)
         return obj
+    
+    def ReceiveRecorderData(self):
+        li = list(self.inPointIQ.read(7000, 100))
+        # print li
+        
+        if (not len(li) == 6032):
+            return 0
+        
+        obj = RecorderData()
+        obj.CommonHeader = FrameHeader(li[0], li[1], li[2], li[3])
+
+        obj.LonLatAlti = LonLatAltitude(li[4], li[5], li[6], li[7], li[8] >> 7, \
+                                        li[8] & 0x7F, li[9], li[10], li[11] >> 7, \
+                                        li[11] & 0x7F, li[12])
+
+
+        obj.Time = TimeNoZero(li[13], li[14] >> 4, li[14] & 0x0F, li[15] >> 3, \
+                               li[15] & 0x07, li[16] >> 2, li[16] & 0x03, li[17])
+
+        # for i in bytearray(obj.Time):
+        #     print i,
+        # print '-------'
+
+
+        for i in range(4):
+            obj.SecondCount[i] = li[18 + i]
+
+        obj.ParamNoUp = IQDataRePart(li[22], li[23] >> 6, li[23] & 0x3F, li[24], li[25] >> 4, \
+                                   li[25] & 0x0F)
+        obj.ByteZero1 = li[26]
+        obj.ByteZero2 = li[27]
+        
+        for i in xrange(2000):
+            obj.IQDataAmp[i] = FreqIQ(li[28 + 3 * i] >> 4, li[28 + 3 * i] & 0x0F, li[29 + 3 * i], li[30 + 3 * i])
+        
+        obj.CommonTail = (0,0,0xAA)
+        return obj
 
 
     def ReceiveTDOAData(self):

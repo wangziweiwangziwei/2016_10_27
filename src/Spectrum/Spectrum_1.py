@@ -18,8 +18,8 @@ class Spec(wx.aui.AuiMDIChildFrame):
         wx.aui.AuiMDIChildFrame.__init__(self,parent,-1,name)
  
         topSplitter = wx.SplitterWindow(self)
+        
         hSplitter = wx.SplitterWindow(topSplitter)
-
         self.panelAbFreq = MyListCtrlAbFreq(hSplitter)
         self.panelQuery = MyListCtrlQuery(hSplitter)
         hSplitter.SplitHorizontally(self.panelAbFreq, self.panelQuery)
@@ -252,6 +252,13 @@ class PanelSpec(wx.Panel):
         self.lineSpecBack,=self.axes.plot(self.xData,self.yData,'r')
         ####Marker############
         self.drs=[]
+        
+        index = self.show_box.GetSelection()
+        if index == 0 :
+            print '0000'
+        elif index == 1:
+            print '11111'
+            
     
     
     def OnUpload(self,event):
