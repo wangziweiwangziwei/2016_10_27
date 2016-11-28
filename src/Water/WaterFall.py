@@ -51,7 +51,7 @@ class Water(wx.aui.AuiMDIChildFrame):
 
         for i in range(self.rowCpy):
             self.matrixFull.insert(0,yData)
-        self.image.set_data(array(self.matrixFull))
+#         self.image.set_data(array(self.matrixFull))
         self.FigureCanvas.draw()
       
            
@@ -92,6 +92,6 @@ class Water(wx.aui.AuiMDIChildFrame):
         self.axes.set_ylabel(YabelString)
 
     def OnClose(self,event):
-        self.parent.WaterFrame=None
+        self.parent.WaterFrame_pl=None
         self.Close()
 

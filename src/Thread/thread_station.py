@@ -667,6 +667,7 @@ class ReceiveServerData(threading.Thread):
                 print 'stop command has been write'
 
                 if(self.switch_to_transfer == 4):
+                    
                     self.thread_recorder.stop()
                     self.mainframe.thread_recvfft.event.set()
 

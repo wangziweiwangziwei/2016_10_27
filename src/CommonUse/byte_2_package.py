@@ -299,7 +299,14 @@ class ByteToPackage():
         return obj        
         
     def ReceiveIQ(self):
+        
         li=list(self.inPointIQ.read(7000,100))
+        print li,u'从usb端口读到了数据'
+        if not len(li)==6028:
+            print u'长度不为6028'
+        print len(li),'-----'
+        if(len(li)==6032):
+            print u"存在录音数据或TDOA数据"
         if(not len(li)==6028):
             return 0
 
@@ -325,6 +332,7 @@ class ByteToPackage():
 
     def ReceiveTdoa(self):
         li = list(self.inPointIQ.read(7000, 100))
+
         if (not len(li) == 6032):
             
             return 0

@@ -11,10 +11,11 @@ from src.CommonUse.staticVar import  staticVar
 from src.Package.package import RecordStartSet,RecorderEndSet,FrameHeader,FrameTail
 from src.Thread import thread_recv_recorder
 from src.Spectrum.IQ2_Spectrum_test import DrawPanel,MenuSet
+from src.Water.Pl_WaterFall import IQ2_Water
  
 class dialog_recorder ( wx.Dialog ):
     def __init__(self,parent):
-        wx.Dialog.__init__(self,parent,-1,u"录音回放",wx.DefaultPosition,wx.Size(400,350))
+        wx.Dialog.__init__(self,parent,-1,u"录音回放",wx.DefaultPosition,wx.Size(408,400))
         
         ##############硬件通信###############
         self.id = staticVar.getid()
@@ -28,11 +29,15 @@ class dialog_recorder ( wx.Dialog ):
         self.time_val_last = 0
         self.save_wave2_flg = 1
         self.file_path_last = u''
+        self.choosefilemode = 2
+        self.iq_file_flg = 1
+#         self.drawFlag = 1
 
         ##################################
         
         self.parent = parent
         self.CreatePanel()
+        self.Layout()
         
         
 #         self.SetFont(wx.Font(10, wx.ROMAN, wx.NORMAL, wx.LIGHT, underline=False, faceName=u"微软雅黑",
@@ -57,14 +62,14 @@ class dialog_recorder ( wx.Dialog ):
         self.sta_txt_recvg = wx.StaticText(self.start_pnl,wx.ID_ANY,u"dB",wx.DefaultPosition,wx.DefaultSize)
         s_gSizer.Add(self.txt_recvgain,0,wx.EXPAND,5)
         s_gSizer.Add(self.slider_recvgain,0,wx.EXPAND,5)
-        s_gSizer.Add(self.sta_txt_recvg,0,wx.ALIGN_CENTER|wx.EXPAND,5)
+        s_gSizer.Add(self.sta_txt_recvg,0,wx.EXPAND,5)
         
         self.txt_centr_freq = wx.StaticText(self.start_pnl,wx.ID_ANY,u"  中心频率",wx.DefaultPosition,wx.DefaultSize)
         self.txt_ctrl_freq = wx.TextCtrl( self.start_pnl,wx.ID_ANY,wx.EmptyString,wx.DefaultPosition,size=(130,-1))
         self.sta_txt_freq = wx.StaticText(self.start_pnl,wx.ID_ANY,u"MHz",wx.DefaultPosition,wx.DefaultSize)
         s_gSizer.Add(self.txt_centr_freq,0,wx.EXPAND,5)
         s_gSizer.Add(self.txt_ctrl_freq,0,wx.ALL,5)
-        s_gSizer.Add(self.sta_txt_freq,0,wx.ALIGN_CENTER|wx.EXPAND,5)
+        s_gSizer.Add(self.sta_txt_freq,0,wx.EXPAND,5)
         
         self.band_data = wx.StaticText(self.start_pnl,wx.ID_ANY,u"  IQ 带宽/数据率",wx.DefaultPosition,wx.DefaultSize)
         self.bw_list = [ u"5", u"2.5", u"1.25", u"0.625", u"0.125" ]
@@ -73,50 +78,56 @@ class dialog_recorder ( wx.Dialog ):
         self.band_data_txt = wx.StaticText(self.start_pnl,wx.ID_ANY,u"MHz",wx.DefaultPosition,wx.DefaultSize)
         s_gSizer.Add(self.band_data,0,wx.EXPAND,5)
         s_gSizer.Add(self.band_data_choice,0,wx.ALL,5)
-        s_gSizer.Add(self.band_data_txt,0,wx.ALIGN_CENTER|wx.EXPAND,5)
+        s_gSizer.Add(self.band_data_txt,0,wx.EXPAND,5)
+        
+        # self.dtime_txt = wx.StaticText(self.start_pnl,wx.ID_ANY,u'  延迟时间',wx.DefaultPosition,wx.DefaultSize)
+        # self.dtime = wx.TextCtrl( self.start_pnl,wx.ID_ANY,wx.EmptyString,wx.DefaultPosition,size=(130,-1))
+        # self.dtime_unit = wx.StaticText(self.start_pnl,wx.ID_ANY,u'S',wx.DefaultPosition,wx.DefaultSize)
+        # s_gSizer.Add(self.dtime_txt,0,wx.EXPAND,5)
+        # s_gSizer.Add(self.dtime,0,wx.ALL,5)
+        # s_gSizer.Add(self.dtime_unit,0,wx.EXPAND,5)
         
         s_bSizer.Add(s_gSizer,0,wx.ALL,5)
 
-#         curTime = time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))
-#         Year = int(curTime[0:4])
-#         Month = int(curTime[4:6])
-#         Day = int(curTime[6:8])
-#         Hour = int(curTime[8:10])
-#         Min = int(curTime[10:12]) 
-#         Sec = int(curTime[12:14])
-#         
-#         self.StartTimeYear = wx.ComboBox(self.start_pnl,-1,str(Year),choices=["2016","2017","2018","2019"])
-#         self.StartTimeMonth = wx.ComboBox(self.start_pnl, -1, str(Month),
-#                                           choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"])
-#         self.StartTimeDay = wx.TextCtrl(self.start_pnl,-1,str(Day),size=(50, 25))
-#         self.StartTimeHour = wx.TextCtrl(self.start_pnl,-1,str(Hour),size=(50, 25))
-#         self.StartTimeMinute = wx.TextCtrl(self.start_pnl,-1,str(Min),size=(50, 25))
-#         self.StartTimeSecond = wx.TextCtrl(self.start_pnl,-1,str(Sec),size=(45, 25))
-#         
-#         self.txt_time = wx.StaticText(self.start_pnl,wx.ID_ANY,u"  起始时间（年-月-日-时-分-秒）",wx.DefaultPosition,wx.DefaultSize)
-#         s_bSizer.Add(self.txt_time,0,wx.EXPAND,5)
-#         
-#         time_sizer=wx.BoxSizer(wx.HORIZONTAL)
-#         time_sizer.Add(self.StartTimeYear,0,wx.LEFT,20)
-#         time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
-#         time_sizer.Add(self.StartTimeMonth,0,wx.EXPAND)
-#         time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
-#         time_sizer.Add(self.StartTimeDay,0,wx.EXPAND)
-#         time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
-#         time_sizer.Add(self.StartTimeHour,0,wx.EXPAND)
-#         time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
-#         time_sizer.Add(self.StartTimeMinute,0,wx.EXPAND)
-#         time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
-#         time_sizer.Add(self.StartTimeSecond,0,wx.EXPAND)
-#         
-#         s_bSizer.Add(time_sizer,0,wx.ALL,5)
+        curTime = time.strftime('%Y%m%d%H%M%S',time.localtime(time.time()))
+        Year = int(curTime[0:4])
+        Month = int(curTime[4:6])
+        Day = int(curTime[6:8])
+        Hour = int(curTime[8:10])
+        Min = int(curTime[10:12]) 
+        Sec = int(curTime[12:14])
+         
+        self.StartTimeYear = wx.ComboBox(self.start_pnl,-1,str(Year),choices=["2016","2017","2018","2019"])
+        self.StartTimeMonth = wx.ComboBox(self.start_pnl, -1, str(Month),
+                                          choices=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"])
+        self.StartTimeDay = wx.TextCtrl(self.start_pnl,-1,str(Day),size=(50, 25))
+        self.StartTimeHour = wx.TextCtrl(self.start_pnl,-1,str(Hour),size=(50, 25))
+        self.StartTimeMinute = wx.TextCtrl(self.start_pnl,-1,str(Min),size=(50, 25))
+        self.StartTimeSecond = wx.TextCtrl(self.start_pnl,-1,str(Sec),size=(45, 25))
+         
+        self.txt_time = wx.StaticText(self.start_pnl,wx.ID_ANY,u"  起始时间（年-月-日-时-分-秒）",wx.DefaultPosition,wx.DefaultSize)
+        s_bSizer.Add(self.txt_time,0,wx.EXPAND,5)
+         
+        time_sizer=wx.BoxSizer(wx.HORIZONTAL)
+        time_sizer.Add(self.StartTimeYear,0,wx.LEFT,20)
+        time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
+        time_sizer.Add(self.StartTimeMonth,0,wx.EXPAND)
+        time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
+        time_sizer.Add(self.StartTimeDay,0,wx.EXPAND)
+        time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
+        time_sizer.Add(self.StartTimeHour,0,wx.EXPAND)
+        time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
+        time_sizer.Add(self.StartTimeMinute,0,wx.EXPAND)
+        time_sizer.Add(wx.StaticText(self.start_pnl,-1,"-"),0,wx.EXPAND|wx.LEFT|wx.RIGHT|wx.ALIGN_BOTTOM,5)
+        time_sizer.Add(self.StartTimeSecond,0,wx.EXPAND)
+         
+        s_bSizer.Add(time_sizer,0,wx.ALL,5)
         
         self.sta_btn = wx.Button(self.start_pnl,-1,u"启动",wx.DefaultPosition,wx.DefaultSize)
         self.end_btn = wx.Button(self.start_pnl,-1,u"结束",wx.DefaultPosition,wx.DefaultSize)
         
         btn_Sizer = wx.GridSizer(1,4,0,0)
         btn_Sizer.AddSpacer((0,0),1,wx.EXPAND,5)
-#         btn_Sizer.AddSpacer((0,0),1,wx.EXPAND,5)
         btn_Sizer.Add(self.sta_btn,0,wx.ALL,5)
         btn_Sizer.Add(self.end_btn,0,wx.ALL,5)
         s_bSizer.Add(btn_Sizer)
@@ -144,87 +155,30 @@ class dialog_recorder ( wx.Dialog ):
         bSizer1.Add(self.file_path,0,wx.ALL|wx.ALIGN_BOTTOM,5)
         pb_bSizer.Add(bSizer1,0,wx.ALL,5)
         
-#         self.show_mode = wx.StaticText(self.playback_pnl,-1,u" 显示方式：功率谱图，瀑布图，相位谱图，解调后归一化波形")
+        self.show_mode = wx.StaticText(self.playback_pnl,-1,u" 显示方式：")
+        self.spec_mode = wx.CheckBox(self.playback_pnl,-1,u'功率谱图，相位谱图，解调后归一化波形')
+        self.water_mode = wx.CheckBox(self.playback_pnl,-1,u'瀑布图')
 
-#         show_bSizer = wx.GridSizer(1,1,0,0)
-#         show_bSizer.Add(self.show_mode,0,wx.ALL,5)
-#         pb_bSizer.Add(show_bSizer,0,wx.ALL,5)
+        show_bSizer = wx.GridSizer(2,2,0,0)
+        show_bSizer.Add(self.show_mode,0,wx.ALL,5)
+        show_bSizer.AddSpacer((10,10))
+        show_bSizer.Add(self.spec_mode,0,wx.ALL,5)
+        show_bSizer.Add(self.water_mode,0,wx.ALL,5)
+        pb_bSizer.Add(show_bSizer,0,wx.ALL,5)
         
         h_bSizer = wx.BoxSizer(wx.HORIZONTAL)
         self.am_fm_mode_txt = wx.StaticText(self.playback_pnl,-1,u" 解调方式：")
         am_fm_mode = [u"AM解调",u"FM解调"]
         self.am_fm_mode = wx.RadioBox(self.playback_pnl,wx.ID_ANY,u"",wx.DefaultPosition,wx.DefaultSize,am_fm_mode,1,wx.RA_SPECIFY_ROWS)
         self.am_fm_mode.SetSelection(0)
-        self.showBtn = wx.Button(self.playback_pnl,-1,u"显示")
+        self.showBtn = wx.Button(self.playback_pnl,-1,u"确定")
         h_bSizer.Add(self.am_fm_mode_txt,0,wx.ALL,5)
         h_bSizer.Add(self.am_fm_mode,0,wx.ALL,5)
 #         h_bSizer.Add((10,10))
 #         h_bSizer.Add((10,10))
         h_bSizer.Add(self.showBtn,0,wx.ALL|wx.ALIGN_BOTTOM|wx.ALIGN_LEFT,5)
         pb_bSizer.Add(h_bSizer,0,wx.ALL,5)
-        
-#         pb_bSizer.Add((10,10))
-#         pb_bSizer.Add(wx.StaticLine(self.playback_pnl),0,wx.EXPAND,5)
-#         
-#         bSizer2 = wx.GridSizer(1,2,0,0)
-#         self.pl_file_path = wx.TextCtrl(self.playback_pnl,-1,u"",wx.DefaultPosition,wx.Size(170,-1))
-#         self.pl_chooseBtn = wx.Button(self.playback_pnl,-1,u"选择进行回放的文件")
-#         bSizer2.Add(self.pl_chooseBtn,0,wx.ALL,5)
-#         bSizer2.Add(self.pl_file_path,0,wx.ALL|wx.ALIGN_BOTTOM,5)
-#         pb_bSizer.Add(bSizer2,0,wx.ALL,5)
-#         
-#         
-#         self.filter_txt = wx.StaticText(self.playback_pnl,-1,u"  设置音频低通滤波器参数：")
-#         pb_bSizer.Add(self.filter_txt,0,wx.ALL,5)
-#         
-#         
-#         self.pass_sideband_txt = wx.StaticText(self.playback_pnl,-1,u"    通带边频")
-#         self.pass_sideband_f1 = wx.TextCtrl(self.playback_pnl,-1,wx.EmptyString,wx.DefaultPosition,wx.Size(80,-1))
-#         self.Hz_txt1 = wx.StaticText(self.playback_pnl,-1,u"Hz，")
-#         self.stop_sideband_txt = wx.StaticText(self.playback_pnl,-1,u"    阻带边频")
-#         self.stop_sideband_f2 = wx.TextCtrl(self.playback_pnl,-1,wx.EmptyString,wx.DefaultPosition,wx.Size(80,-1))
-#         self.Hz_txt2 = wx.StaticText(self.playback_pnl,-1,u"Hz")
-#         self.stop_att_txt = wx.StaticText(self.playback_pnl,-1,u"    带外抑制")
-#         self.stop_att_A = wx.TextCtrl(self.playback_pnl,-1,wx.EmptyString,wx.DefaultPosition,wx.Size(80,-1))
-#         self.dB_txt = wx.StaticText(self.playback_pnl,-1,u"dB，")
-# 
-#         self.extract_txt = wx.StaticText(self.playback_pnl,-1,u"    抽取倍率")
-#         self.extract_N = wx.TextCtrl(self.playback_pnl,-1,wx.EmptyString,wx.DefaultPosition,wx.Size(80,-1))
-#         self.extract_range = wx.StaticText(self.playback_pnl,-1,u"(1-60)")
-# 
-#         f_gSizer1 = wx.BoxSizer(wx.HORIZONTAL)
-#         f_gSizer1.Add(self.pass_sideband_txt,0,wx.ALL,5)
-#         f_gSizer1.Add(self.pass_sideband_f1,0,wx.ALL,5)
-#         f_gSizer1.Add(self.Hz_txt1,0,wx.ALL,5)
-#         f_gSizer1.Add(self.stop_sideband_txt,0,wx.ALL,5)
-#         f_gSizer1.Add(self.stop_sideband_f2,0,wx.ALL,5)
-#         f_gSizer1.Add(self.Hz_txt2,0,wx.ALL,5)
-#         pb_bSizer.Add(f_gSizer1,0,wx.ALL,5)
-#         
-#         f_gSizer2 = wx.BoxSizer(wx.HORIZONTAL)
-#         f_gSizer2.Add(self.stop_att_txt,0,wx.ALL,5)
-#         f_gSizer2.Add(self.stop_att_A,0,wx.ALL,5)
-#         f_gSizer2.Add(self.dB_txt,0,wx.ALL,5)
-#         f_gSizer2.Add(self.extract_txt,0,wx.ALL,5)
-#         f_gSizer2.Add(self.extract_N,0,wx.ALL,5)
-#         f_gSizer2.Add(self.extract_range,0,wx.ALL|wx.ALIGN_CENTER)
-#         pb_bSizer.Add(f_gSizer2,0,wx.ALL,5)
-# 
-#         
-#         h_bSizer2 = wx.BoxSizer(wx.HORIZONTAL)
-#         self.pl_txt = wx.StaticText(self.playback_pnl,-1,u" 回放方式：")
-#         pl_mode = [u"声音回放"]
-#         self.pl_mode = wx.RadioBox(self.playback_pnl,wx.ID_ANY,u"",wx.DefaultPosition,wx.DefaultSize,pl_mode,1,wx.RA_SPECIFY_ROWS)
-#         self.pl_mode.SetSelection(0)
-#         self.playback_set_Btn = wx.Button(self.playback_pnl,-1,u"设置")
-#         self.playback_stop_Btn = wx.Button(self.playback_pnl,-1,u"停止播放")
-#         h_bSizer2.Add(self.pl_txt,0,wx.ALL,5)
-#         h_bSizer2.Add(self.pl_mode,0,wx.ALL,5)
-#         h_bSizer2.Add(self.playback_set_Btn,0,wx.ALL|wx.ALIGN_BOTTOM,5)
-#         h_bSizer2.Add(self.playback_stop_Btn,0,wx.ALL|wx.ALIGN_BOTTOM,5)
-#         
-#         pb_bSizer.Add(h_bSizer2,0,wx.ALL,5)
-        
+                
         self.playback_pnl.SetSizer(pb_bSizer)
         self.m_notebook.AddPage(self.playback_pnl,u"回放模式",False)
         
@@ -332,14 +286,218 @@ class dialog_recorder ( wx.Dialog ):
                 self.file_path.AppendText(item)
                 self.file_path.AppendText(';')
                 
-#     def pl_chooseFileClick(self,evt):
-#         self.pl_chooseFileDlg = wx.FileDialog(None,u"选择进行回放的文件：",wildcard='*.wave2',style=wx.MULTIPLE)
-#         if self.pl_chooseFileDlg.ShowModal() == wx.ID_OK:
-#             for item in self.pl_chooseFileDlg.GetPaths():
-#                 self.pl_file_path.AppendText(item)
-#                 self.pl_file_path.AppendText(';')
-                
+                if item[-1] == '2':
+                    self.choosefilemode = 2
+                elif item[-1] == 'q':
+                    self.choosefilemode = 1
+                        
     def showPlaybackClick(self,evt):  
+        self.Close()
+        if self.choosefilemode == 2 :
+            self.iq2_file()
+
+            
+        elif self.choosefilemode == 1:
+            self.iq_file()
+
+        
+
+            
+    def iq_file(self):
+        
+
+
+        for path in self.chooseFileDlg.GetPaths():
+            iq_file = open(path,'rb').read()
+            iq_gps_centr = []
+            for line in iq_file:
+                line = ord(line)
+                iq_gps_centr.append(line)
+            
+
+            wave1_list = []
+                    
+            wave1_list.append('Start')
+            wave1_list.append(iq_gps_centr[1])
+            
+            longtitude_int = iq_gps_centr[2]
+            longtitude_frac_high = iq_gps_centr[3] << 8
+            longtitude_frac_low = iq_gps_centr[4]
+            longtitude_frac = longtitude_frac_high + longtitude_frac_low
+            longtitude = longtitude_int + longtitude_frac / (10 ** len(str(longtitude_frac))) 
+            longtitude = float('%.6f' % longtitude)
+            wave1_list.append(longtitude)
+            
+            wave1_list.append(iq_gps_centr[5] >> 7)
+            
+            latitude_int = iq_gps_centr[5] & 0x7F
+            latitude_frac_high = iq_gps_centr[6] << 8
+            latitude_frac_low = iq_gps_centr[7]
+            latitude_frac = latitude_frac_high + latitude_frac_low
+            latitude = latitude_int + latitude_frac / (10 ** len(str(latitude_frac)))
+            latitude = float('%.6f' % latitude)
+            wave1_list.append(latitude)
+            
+            height_flag = iq_gps_centr[8] >> 7
+            height_high = (iq_gps_centr[8] & 0x7F) << 8
+            height_low = iq_gps_centr[9]
+            height = height_high + height_low
+            if height_flag == 1 :
+                height = - height
+            wave1_list.append(height)
+            
+            
+            
+            freq_centr_int_h = iq_gps_centr[10] << 6
+            freq_centr_int_l = iq_gps_centr[11] & 0x3F
+            freq_centr_frac_h = (iq_gps_centr[11] >> 6)<< 8
+            freq_centr_frac_l = iq_gps_centr[12]
+            freq_centr_int = freq_centr_int_h + freq_centr_int_l
+            freq_centr_frac = freq_centr_frac_h + freq_centr_frac_l
+            freq_centr = freq_centr_int + freq_centr_frac / (10 ** len(str(freq_centr_frac)))
+            freq_centr = float('%.4f' % freq_centr)
+
+            wave1_list.append(freq_centr)
+            
+            bandwidth = iq_gps_centr[13] >> 4
+            if (bandwidth == 1) :
+                bandwidth_rate = 5
+                wave1_list.append(5)
+                wave1_list.append(5)
+            elif (bandwidth == 2):
+                bandwidth_rate = 2.5
+                wave1_list.append(2.5)
+                wave1_list.append(2.5)
+            elif (bandwidth == 3):
+                bandwidth_rate = 1.25
+                wave1_list.append(1.25)
+                wave1_list.append(1.25)
+            elif (bandwidth == 4):
+                bandwidth_rate = 0.625
+                wave1_list.append(0.625)
+                wave1_list.append(0.625)
+            elif (bandwidth == 5):
+                bandwidth_rate = 0.125
+                wave1_list.append(0.125)
+                wave1_list.append(0.125)
+            
+            wave1_list.append(iq_gps_centr[14])
+            wave1_list.append('')
+            
+            # print wave1_list
+            # print len(wave1_list)
+            a = path.index('IQ')
+            filename = path[(a + 3) : -3]
+            
+            
+            wave1_file = open(r'./LocalData/Wave2/' + filename  + '.wave2','w')
+            for i in range(len(wave1_list)):
+                wave1_file.write(str(wave1_list[i]) + '\n')
+            wave1_file.close() 
+            
+          
+            N = iq_gps_centr[14]
+            
+            for j in range(N):
+                IData = []
+                QData = []
+                for i in range(2000):
+                    HighI1 = ((iq_gps_centr[6001 * (j + 1) - 5985 + i * 3]) >> 4) << 8
+                    LowI1 = iq_gps_centr[6001 * (j + 1) - 5984 + i * 3]
+                    if (HighI1 >= 2048):
+                        I1 = -(2 ** 12 - HighI1 - LowI1)
+                    else :
+                        I1 = (HighI1 + LowI1)
+                    IData.append(I1)
+            
+                    HighQ1 = ((iq_gps_centr[6001 * (j + 1) - 5985 + i * 3]) & 0x0F) << 8
+                    LowQ1 = iq_gps_centr[6001 * (j + 1) - 5983 + i * 3]
+                    if (HighQ1 >= 2048):
+                        Q1 = -(2 ** 12 - HighQ1 - LowQ1)
+                    else :
+                        Q1 = (HighQ1 + LowQ1)
+                    QData.append(Q1)
+
+            
+                IQData = []
+                for i in range(2000):
+                    data1 = complex(IData[i]/2047,-QData[i]/2047)
+                    IQData.append(data1)
+                for i in range(48):
+                    IQData.append(0)
+                    
+                n = 2048 
+                y = IQData[:]
+                w = signal.blackmanharris(n) 
+                y = y*w
+                y_fft = np.fft.fft(y)
+                y_fftshift = np.fft.fftshift(y_fft)
+                yk = (1 / sqrt(sum(abs(w * w))/ 2048)) * y_fftshift 
+                pk = [] ##### pk:相对平均功率谱
+                fk = [] ##### fk:对应的实际频率值
+                angle = [] #### angle:对应的相位谱
+        
+                
+                for k in range(-1024,1024):
+                    fk.append(freq_centr + k * bandwidth_rate / 2048)
+                    
+                
+                for i in range(len(yk)):
+                    pk.append(-57.206 + 20 * log10(abs(yk[i])))
+                    
+                    if (yk[i].real == 0)and(yk[i].imag > 0) :
+                        angle.append(90)
+                    elif (yk[i].real == 0)and(yk[i].imag < 0) :
+                        angle.append(-90)
+                    elif (yk[i].real == 0)and(yk[i].imag == 0) :
+                        angle.append(0)
+                    else :
+                        angle.append(57.3 * atan(yk[i].imag / yk[i].real))
+                    angle[i] = '%.2f' % angle[i]
+                
+                if self.am_fm_mode.GetSelection() == 0 : ###am
+                    data = self.am_mode(IData, QData)
+                elif(self.am_fm_mode.GetSelection() == 1 ): ###fm
+                    data = self.fm_mode(IData, QData)  #### data:解调后对应的值
+                
+                
+
+                if self.spec_mode.GetValue(): 
+                    if(self.parent.IQ2SpecFrame_test == None):    
+                        self.parent.IQ2SpecFrame_test = DrawPanel(self.parent,fk,pk,angle,data,self.chooseFileDlg.GetPaths(),self.am_fm_mode.GetSelection(),self.choosefilemode)
+                        self.parent.IQ2SpecFrame_test.Activate()
+                    
+                        
+                    self.parent.IQ2SpecFrame_test.spec.set_txt(filename, longtitude, latitude, height, freq_centr, bandwidth_rate)
+#                     self.parent.IQ2SpecFrame_test.spec.setLbl_draw(fk,pk)
+                    self.parent.IQ2SpecFrame_test.spec.filePath(self.chooseFileDlg.GetPaths())
+                    self.parent.IQ2SpecFrame_test.wave.filePath(self.chooseFileDlg.GetPaths())
+                    self.parent.IQ2SpecFrame_test.wave.am_fm_mode_refresh(self.am_fm_mode.GetSelection())
+
+                    
+                if self.water_mode.GetValue():
+                    if(self.parent.WaterFrame_pl == None):
+                        self.parent.WaterFrame_pl = IQ2_Water(self.parent,fk,pk,self.chooseFileDlg.GetPaths(),self.choosefilemode)
+                        self.parent.WaterFrame_pl.Activate()
+                    self.parent.WaterFrame_pl.set_txt(filename, longtitude, latitude, height, freq_centr, bandwidth_rate)
+                    self.parent.WaterFrame_pl.fileDraw(self.chooseFileDlg.GetPaths())
+                    self.parent.WaterFrame_pl.setLbl_draw(fk,pk)
+            
+                
+                wave1_file = open(r'./LocalData/Wave2/' + filename + '.wave2','a')
+                for i in range(2000):
+                    wave1_file.write(str('%.4f' % data[i]) + '\n')
+                wave1_file.close() 
+            
+             
+            wave1_file = open(r'./LocalData/Wave2/' + filename + '.wave2','a')
+            wave1_file.write('end')
+            wave1_file.close()
+
+                 
+                    
+        
+    def iq2_file(self):
         
         if not self.chooseFileDlg.GetPaths() == self.file_path_last:
             self.save_wave2_flg = 1
@@ -349,15 +507,11 @@ class dialog_recorder ( wx.Dialog ):
             self.data_last = None
             self.filename_last = None
         
-        self.Close()
-#         MenuSet.pl_file_path = self.chooseFileDlg.GetPaths()
+#         self.Close()
+
         
         if (not self.file_path == None):
-#             print self.chooseFileDlg.GetPaths()
-
-
-#             if self.parent.drawFlag:
-                
+  
             
             if len(self.chooseFileDlg.GetPaths()) == 1:
 
@@ -372,48 +526,71 @@ class dialog_recorder ( wx.Dialog ):
                     elif(self.am_fm_mode.GetSelection() == 1 ): ###fm
                         data = self.fm_mode(IData, QData)
                         
-                    if(self.parent.IQ2SpecFrame_test == None):
-                        self.parent.IQ2SpecFrame_test = DrawPanel(self.parent,fk,pk,angle,data)
-                        self.parent.IQ2SpecFrame_test.Activate()
-                        self.parent.IQ2SpecFrame_test.sp1.set_rbw_centrFreq(freq_centr, bandwidth_rate)
+                    self.lon,self.lat,self.hei,filename = self.save_iq2_to_wave1(one_iq2_file_path,iq2_gps_centr,freq_centr,data)
+                    
+                    if self.spec_mode.GetValue():    
+                        if(self.parent.IQ2SpecFrame_test == None):
+                            self.parent.IQ2SpecFrame_test = DrawPanel(self.parent,fk,pk,angle,data,self.chooseFileDlg.GetPaths(),self.am_fm_mode.GetSelection(),self.choosefilemode)
+                            self.parent.IQ2SpecFrame_test.Activate()
+    
+                        self.parent.IQ2SpecFrame_test.spec.set_txt(filename, self.lon, self.lat, self.hei, freq_centr, bandwidth_rate)
+#                         self.parent.IQ2SpecFrame_test.spec.setLbl_draw(fk,pk)
+                        self.parent.IQ2SpecFrame_test.spec.filePath(self.chooseFileDlg.GetPaths())
+                        self.parent.IQ2SpecFrame_test.wave.filePath(self.chooseFileDlg.GetPaths())
+                        self.parent.IQ2SpecFrame_test.wave.am_fm_mode_refresh(self.am_fm_mode.GetSelection())
+#                         self.parent.IQ2SpecFrame_test.wave.setLbl_draw(data)
+                        
+                    if self.water_mode.GetValue():
+                        if(self.parent.WaterFrame_pl == None):
+                            self.parent.WaterFrame_pl = IQ2_Water(self.parent,fk,pk,self.chooseFileDlg.GetPaths(),self.choosefilemode)
+                            self.parent.WaterFrame_pl.Activate()
+                        self.parent.WaterFrame_pl.set_txt(filename, self.lon, self.lat, self.hei, freq_centr, bandwidth_rate)
+                        self.parent.WaterFrame_pl.fileDraw(self.chooseFileDlg.GetPaths())
+                        self.parent.WaterFrame_pl.setLbl_draw(fk,pk)
 
 
-                    self.parent.IQ2SpecFrame_test.sp1.setLbl_draw(fk,pk)
-                    self.parent.IQ2SpecFrame_test.sp3.setLbl_draw(data)
-                    self.parent.IQ2SpecFrame_test.sp2.setLbl_draw(pk)
-                    self.parent.IQ2SpecFrame_test.sp4.setLbl_draw(fk,angle)
 
-#                         print '----draw'
-
-                    self.save_one_iq2_to_wave1(one_iq2_file_path,iq2_gps_centr,freq_centr,data)
 
             elif len(self.chooseFileDlg.GetPaths()) > 1:
 
-
                 for one_iq2_file_path in self.chooseFileDlg.GetPaths():
-                    
+                     
                     iq2_gps_centr,IData,QData,freq_centr,bandwidth_rate = self.ParseIQ2(one_iq2_file_path)
-                    pk,fk,angle = self.fft_iq2(IData,QData,freq_centr,bandwidth_rate) 
+                    pk,fk,angle = self.fft_iq2(IData,QData,freq_centr,bandwidth_rate)                     
+    
                     
                     if self.am_fm_mode.GetSelection() == 0 : ###am
                         data = self.am_mode(IData, QData)
                     elif(self.am_fm_mode.GetSelection() == 1 ): ###fm
                         data = self.fm_mode(IData, QData)
                     
-                    if(self.parent.IQ2SpecFrame_test == None):    
-                        self.parent.IQ2SpecFrame_test = DrawPanel(self.parent,fk,pk,angle,data)
-                        self.parent.IQ2SpecFrame_test.Activate()
-                        self.parent.IQ2SpecFrame_test.spec.set_rbw_centrFreq(freq_centr, bandwidth_rate)
-
-                    
-                    self.parent.IQ2SpecFrame_test.sp1.setLbl_draw(fk,pk)
-                    self.parent.IQ2SpecFrame_test.sp3.setLbl_draw(data)
-                    self.parent.IQ2SpecFrame_test.sp2.setLbl_draw(pk)
-                    self.parent.IQ2SpecFrame_test.sp4.setLbl_draw(fk,angle)      
-                     
                     if self.save_wave2_flg:
-                        self.save_iq2_to_wave1(one_iq2_file_path,iq2_gps_centr,freq_centr,data)                
-                
+                        self.lon,self.lat,self.hei,filename = self.save_iq2_to_wave1(one_iq2_file_path,iq2_gps_centr,freq_centr,data)
+                    
+                    if self.spec_mode.GetValue(): 
+                        if(self.parent.IQ2SpecFrame_test == None):    
+                            self.parent.IQ2SpecFrame_test = DrawPanel(self.parent,fk,pk,angle,data,self.chooseFileDlg.GetPaths(),self.am_fm_mode.GetSelection(),self.choosefilemode)
+                            self.parent.IQ2SpecFrame_test.Activate()
+                            
+                        self.parent.IQ2SpecFrame_test.spec.set_txt(self.filename_last, self.lon, self.lat, self.hei, freq_centr, bandwidth_rate)
+#                         self.parent.IQ2SpecFrame_test.spec.setLbl_draw(fk,pk)
+                        self.parent.IQ2SpecFrame_test.spec.filePath(self.chooseFileDlg.GetPaths())
+                        self.parent.IQ2SpecFrame_test.wave.filePath(self.chooseFileDlg.GetPaths())
+                        self.parent.IQ2SpecFrame_test.wave.am_fm_mode_refresh(self.am_fm_mode.GetSelection())
+                        
+                    if self.water_mode.GetValue():
+                        if(self.parent.WaterFrame_pl == None):
+                            self.parent.WaterFrame_pl = IQ2_Water(self.parent,fk,pk,self.chooseFileDlg.GetPaths(),self.choosefilemode)
+                            self.parent.WaterFrame_pl.Activate()
+                        self.parent.WaterFrame_pl.set_txt(filename, self.lon, self.lat, self.hei, freq_centr, bandwidth_rate)
+                        self.parent.WaterFrame_pl.fileDraw(self.chooseFileDlg.GetPaths())
+                        self.parent.WaterFrame_pl.setLbl_draw(fk,pk)
+                        
+                    
+                    
+
+                                      
+                            
                 if self.save_wave2_flg:
                     a = open(self.wave2_file_path,'a')
                     for i in range(len(self.data_last)):
@@ -422,139 +599,9 @@ class dialog_recorder ( wx.Dialog ):
                     a.close()
                     self.save_wave2_flg = 0
             
-
                 
         self.file_path_last = self.chooseFileDlg.GetPaths()
 
-
-    def save_one_iq2_to_wave1(self,one_iq2_file_path,iq2_gps_centr,freq_centr,data):
-        wave1_list = []
-        
-        wave1_list.append('Start')
-        wave1_list.append(iq2_gps_centr[1])
-        
-        longtitude_int = iq2_gps_centr[2]
-        longtitude_frac_high = iq2_gps_centr[3] << 8
-        longtitude_frac_low = iq2_gps_centr[4]
-        longtitude_frac = longtitude_frac_high + longtitude_frac_low
-        longtitude = longtitude_int + longtitude_frac / (10 ** len(str(longtitude_frac))) 
-        longtitude = float('%.6f' % longtitude)
-        wave1_list.append(longtitude)
-        
-        wave1_list.append(iq2_gps_centr[5] >> 7)
-        
-        latitude_int = iq2_gps_centr[5] & 0x7F
-        latitude_frac_high = iq2_gps_centr[6] << 8
-        latitude_frac_low = iq2_gps_centr[7]
-        latitude_frac = latitude_frac_high + latitude_frac_low
-        latitude = latitude_int + latitude_frac / (10 ** len(str(latitude_frac)))
-        latitude = float('%.6f' % latitude)
-        wave1_list.append(latitude)
-        
-        height_flag = iq2_gps_centr[8] >> 7
-        height_high = (iq2_gps_centr[8] & 0x7F) << 8
-        height_low = iq2_gps_centr[9]
-        height = height_high + height_low
-        if height_flag == 1 :
-            height = - height
-        wave1_list.append(height)
-        
-        wave1_list.append(freq_centr)
-        
-        bandwidth = iq2_gps_centr[13] >> 4
-        if (bandwidth == 1) :
-            wave1_list.append(5)
-            wave1_list.append(5)
-        elif (bandwidth == 2):
-            wave1_list.append(2.5)
-            wave1_list.append(2.5)
-        elif (bandwidth == 3):
-            wave1_list.append(1.25)
-            wave1_list.append(1.25)
-        elif (bandwidth == 4):
-            wave1_list.append(0.625)
-            wave1_list.append(0.625)
-        elif (bandwidth == 5):
-            wave1_list.append(0.125)
-            wave1_list.append(0.125)
-        
-        wave1_list.append('')
-        wave1_list.append('')
-
-        for i in range(len(data)):
-            data[i] = '%.4f' % data[i]
-            data[i] = float(data[i])        
-            wave1_list.append(data[i])
-        
-        wave1_list.append('end')
-        # print wave1_list,'-----',len(wave1_list)
-        
-        path = one_iq2_file_path
-        if path[-1] == '2':
-            a = path.index('IQ2')
-            filename = path[(a + 4) : -4]
-        elif path[-1] == 'q':
-            a = path.index('IQ')
-            filename = path[(a + 3) : -3]
-        
-        wave1_file = open(r'./LocalData/Wave1/' + filename + '.wave1','w')
-        for i in range(len(wave1_list)):
-            wave1_file.write(str(wave1_list[i]) + '\n')
-        wave1_file.close()
-
-                   
-                                 
-#     def setPlaybackClick(self,evt):
-#         f1 = float(self.pass_sideband_f1.GetValue())
-#         f2 = float(self.stop_sideband_f2.GetValue())
-#         A = float(self.stop_att_A.GetValue())
-#         
-# #         bw_3dB = float(self.bandwidth.GetValue())
-# #         order = int(self.order.GetValue())
-#         
-#         order = int(log10(10**(A/10)-1)/(2*log10(f2/f1))) + 1 ####滤波器阶数向上取整
-#         rate_extr = int(self.extract_N.GetValue())
-#             
-#         if (not self.pl_file_path == None):
-#             for one_wave2_file_path in self.pl_chooseFileDlg.GetPaths(): 
-#                 wave2_file = open(one_wave2_file_path, 'rb').readlines()
-#                 sig_wave2 = []
-#                 for line in wave2_file[11:-1]:
-#                     sig_wave2.append(float(line.strip('\r\n')))
-#         
-#                 bandwidth_rate = int(wave2_file[8])
-#                 bw_3dB = f1 / (bandwidth_rate/2)
-# 
-#                 b,a = signal.butter(order, bw_3dB, 'low')
-#                 sig_filter = signal.filtfilt(b,a,sig_wave2)
-#                 
-#                 sig_extr = []
-#                 if not rate_extr == 1:
-#                     for i in range(len(sig_filter)//rate_extr):
-#                         sig_extr.append(sig_filter[i + rate_extr])
-#                 else :
-#                     sig_extr = sig_filter
-#                     
-#                 sig_fixed = []
-#                 for i in range(len(sig_extr)):
-#                     sig_fixed.append(int((2**15-1)*sig_extr[i]/max(sig_extr)))
-#                             
-#                 self.OnSound(sig_fixed)
-#                
-#     def OnSound(self,sig):
-#         am_data=np.array(sig)
-#         wave_data=am_data.astype(np.short)
-#         data=wave_data.tostring()
-#         self.p = pyaudio.PyAudio()
-#         self.stream = self.p.open(format = self.p.get_format_from_width(2),channels =2 ,rate = 40000,output = True)
-#         
-#         self.stream.write(data)
-# #         stream.close()
-# #         p.terminate()  
-#         
-#     def endPlayBackClick(self,evt):
-#         self.stream.close()
-#         self.p.terminate()
                             
         
     def save_iq2_to_wave1(self,one_iq2_file_path,iq2_gps_centr,freq_centr,data):
@@ -733,7 +780,8 @@ class dialog_recorder ( wx.Dialog ):
         self.count_last = count 
         self.time_val_last = time_val   
         
-#         self.data = data      
+        return longtitude,latitude,height,filename
+
                 
     def save_wave1_to_wave2(self,wave2_file,data):
                 
@@ -839,19 +887,6 @@ class dialog_recorder ( wx.Dialog ):
         
         return pk,fk,angle
 
-    # def am_mode(self,sigI,sigQ): ####test
-    #     sigI = [i * i for i in sigI]
-    #     sigQ = [j * j for j in sigQ]
-    #     mt1 = [sqrt(i + j) for i,j in zip(sigI,sigQ)]
-    #     # mean = sum(mt1) / len(mt1)
-    #     # data = [(i - mean) for i in mt1]
-    #     # data = data[0:len(data):1]
-
-    #     # abs_data=[abs(i) for i in data]
-    #     # data_max=max(abs_data)
-    #     # data=[float(i*1.25)/data_max for i in data]
-    #     return mt1
-        
     
     def am_mode(self,sigI,sigQ):  ####before
         sigI = [i * i for i in sigI]
@@ -866,26 +901,19 @@ class dialog_recorder ( wx.Dialog ):
         return data
     
     def fm_mode(self,sigI,sigQ):
-        sigI.insert(0,0)
-        sigQ.insert(0,0)
-        sigItmp = np.array(sigI)
-        sigI2 = np.diff(sigItmp)
-        sigQtmp = np.array(sigQ)
-        sigQ2 = np.diff(sigQtmp)
-        del sigI[0]
-        del sigQ[0]
-        mt1 = sigI * sigQ2 - sigQ * sigI2
-        sigI2Q2 = [(i + j) for i,j in zip(sigI,sigQ)]
-        if sigI2Q2 == 0 :
-            mt1 = 0
-        elif not sigI2Q2 == 0 :
-            mt1 = mt1 // sigI2Q2
-        mean = sum(mt1) / len(mt1)
-        mt = [(i - mean) for i in mt1]
-        data = mt[0:len(mt):1]
+        data = []
+        for i in range(1,2000):
+            data.append(sigI[i-1] * sigQ[i] - sigQ[i-1]*sigI[i])
+        data.append(0)
+        sum = 0
+        for i in range(2000):
+            sum += data[i]
+        mean = sum/2000
+        for i in range(2000):
+            data[i]=data[i]-mean
         abs_data = [abs(i) for i in data]
         data_max = max(abs_data)
-        data = [float(i*1.25) / data_max for i in data]
+        data = [float(i) / data_max for i in data]
         return data
     
 

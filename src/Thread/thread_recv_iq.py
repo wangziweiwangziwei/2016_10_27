@@ -33,8 +33,11 @@ class ReceiveIQThread(threading.Thread):
     
     def run(self):
         count=0
+
         while(count<100):
+            print u'进入了循环'
             try:
+                print u'进入了收iq数据'
                 recvIQ=self.byte_to_package.ReceiveIQ()
                 if(not recvIQ==0):
                     self.SweepRangeIQ.append(recvIQ)
@@ -44,6 +47,7 @@ class ReceiveIQThread(threading.Thread):
                             self.SweepRangeIQ.append(recvIQ)
                     break
             except usb.core.USBError,e:
+                print u'usb出错'
                 print e
                 time.sleep(3)
                 count+=1

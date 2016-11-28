@@ -26,7 +26,7 @@ class ReceiveRecorderDataThread(threading.Thread):
     def run(self):
         
         count = 0
-        while(count < 20):
+        while(count < 10):
             try:
                 
                 self.event.wait()
@@ -81,7 +81,7 @@ class ReceiveRecorderDataThread(threading.Thread):
         Second = str(time_local)[17:19]
         ############################################
 
-        if(not Year == 2016):
+        if(not int(Year) == 2016):
             curTime = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
             Year = curTime[0:4]
             Month = curTime[4:6]

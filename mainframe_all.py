@@ -137,6 +137,7 @@ class MainFrame ( wx.aui.AuiMDIParentFrame ):
         self.IQ2SpecFrame = None
         self.IQ2SpecFrame_test = None
         self.IQ2SpecFrame_test2 = None
+        self.WaterFrame_pl = None
 
         self.serverCom=ServerCommunication() #实例化服务器连接对象
 

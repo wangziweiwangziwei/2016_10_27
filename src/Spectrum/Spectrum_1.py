@@ -180,7 +180,13 @@ class PanelSpec(wx.Panel):
         
         bSizer4.Add( bSizer5, 4, wx.EXPAND, 5 )
         
-        gSizer9 = wx.GridSizer( 1, 5, 0, 0 )
+        gSizer7 = wx.GridSizer(1,1,0,0)
+        text2 = wx.StaticText(self, -1, 'MHz')
+        text2.SetFont(font)
+        gSizer7.Add(text2, 0, wx.ALIGN_CENTER, 5)
+        bSizer4.Add( gSizer7, 0, wx.EXPAND, 5 )
+        
+        gSizer9 = wx.GridSizer( 1, 4, 0, 0 )
         
 #         gSizer9.AddSpacer( ( 0, 0), 1, wx.EXPAND, 5 )
 #         self.m_textCtrl16 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 80,-1 ), 0 )
@@ -190,9 +196,8 @@ class PanelSpec(wx.Panel):
         gSizer9.Add(self.rbw,0,wx.ALL,5)
         gSizer9.Add(self.vbw,0,wx.ALL,5)
 
-        text2 = wx.StaticText(self, -1, 'MHz')
-        text2.SetFont(font)
-        gSizer9.Add(text2, 0, wx.ALIGN_CENTER, 5)
+        
+        
         
 #         self.m_textCtrl17 = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 80,-1 ), 0 )
         gSizer9.Add( self.Max_X, 0, wx.ALIGN_RIGHT|wx.ALL, 5 )

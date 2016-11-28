@@ -430,17 +430,17 @@ class dialog_sweep ( wx.Dialog ):
         self.rbw_flg = (self.freq_e-self.freq_s)/25 + 1
 
         if self.rbw_flg <= 40 :
-            self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:24k')
-            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 24) + 'k') 
-            print 'VBW:' + str(self.rbw_flg * 24) + 'k'
+            self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:24.414kHz')
+            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 24.414) + 'kHz') 
+
         else :
             if (self.rbw_flg % 32 == 0 ):
                 self.rbw_flg = self.rbw_flg / 32
             else :
                 self.rbw_flg = self.rbw_flg / 32 + 1
-            self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:781k')
-            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 781) + 'k')
-            print 'VBW:' + str(self.rbw_flg * 781) + 'k'
+            self.parent.SpecFrame.panelFigure.rbw.SetLabel('RBW:781.25kHz')
+            self.parent.SpecFrame.panelFigure.vbw.SetLabel('VBW:' + str(self.rbw_flg * 781.25) + 'kHz')
+
          
 
         if(totalNum>40):
